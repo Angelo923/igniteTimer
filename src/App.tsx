@@ -1,6 +1,7 @@
 import {ThemeProvider} from "styled-components";
 import Button from "./components/Button.tsx";
 import {defaultTheme} from "./styles/themes/default.ts";
+import {GlobalStyle} from "./styles/global.ts";
 
 function App() {
 
@@ -11,6 +12,10 @@ function App() {
           <Button color="success"/>
           <Button color="danger"/>
           <Button />
+
+          TESTE
+
+          <GlobalStyle />
       </ThemeProvider>
   )
 }
