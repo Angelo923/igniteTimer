@@ -1,3 +1,5 @@
+import {STATUS_COLORS} from "../pages/History/styles.ts";
+
 export type TButtonVariant = 'primary' | 'secondary' | 'danger' | 'success';
 
 export interface IButtonForm {
@@ -5,4 +7,8 @@ export interface IButtonForm {
 }
 export interface IButtonContainer {
     variant: TButtonVariant;
+}
+
+export interface IStatusColor {
+    statusColor: keyof typeof STATUS_COLORS;
 }
