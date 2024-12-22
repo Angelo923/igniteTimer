@@ -9,20 +9,20 @@ function Header() {
             <span>
                 <img
                     src={igniteLogo}
-                    alt="Logo do Ignite, dois triangulos seguidos a 45 graus na cor verde" />
+                    alt="Logo do Ignite, dois triangulos seguidos a 45 graus na cor verde"/>
             </span>
             <nav>
                 <NavLink
                     to="/"
                     title="Timer"
                 >
-                    <Timer size={24} />
+                    <Timer size={24}/>
                 </NavLink>
                 <NavLink
                     to="/history"
                     title="History"
                 >
-                    <Scroll size={24} />
+                    <Scroll size={24}/>
                 </NavLink>
             </nav>
         </HeaderContainer>
