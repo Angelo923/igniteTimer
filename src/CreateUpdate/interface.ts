@@ -19,4 +19,5 @@ export interface ICycle {
     minutesAmount: number;
     startDate: Date;
     interruptDate?: Date;
+    finishedDate?: Date;
 }

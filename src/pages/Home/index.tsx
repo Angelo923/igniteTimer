@@ -1,23 +1,17 @@
 import {Play, Stop} from "phosphor-react";
 import {
-    CountDownContainer,
-    FormContainer,
-    HomeContainer, MinutesAmountInput,
-    Separator,
-    StartCountdownButton, StopCountdownButton,
-    TaskInput
+    HomeContainer,
+    StartCountdownButton,
+    StopCountdownButton,
 } from "./styles.ts";
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as zod from 'zod'
 import {useEffect, useState} from "react";
 import {ICycle} from "../../CreateUpdate/interface.ts";
 import { v4 as uuidv4 } from 'uuid';
-import {differenceInSeconds} from "date-fns";
+import NewCycleForm from "./components/NewCycleForm";
+import Countdown from "./components/Countdown";
 
 // CONTROLLED = TEMPO REAL, useState()
 // UNCONTROLLED = usando javascript ou html, sem controle em tempo real do que é digitado
-
 /*
 *  function register(name: string) {
 *  return {
@@ -28,47 +22,11 @@ import {differenceInSeconds} from "date-fns";
 * }
 * */
 
-const newCycleFormValidationSchema = zod.object({
-    task: zod
-        .string()
-        .min(1, 'Informe a Tarefa'),
-    minutesAmount: zod
-        .number()
-        .min(5)
-        .max(60),
-})
-
-type INewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
-
 function Home() {
     const [cycles, setCycles] = useState<ICycle[]>([])
     const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
-    const [amountSecondsElapsed, setAmountSecondsElapsed] = useState(0)
-
-    const {register, handleSubmit, watch, reset} = useForm<INewCycleFormData>({
-        resolver: zodResolver(newCycleFormValidationSchema),
-        defaultValues: {
-            task: '',
-            minutesAmount: 0,
-        }
-    })
 
     const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
-
-    useEffect(() => {
-        let interval: number;
-        if (activeCycle) {
-            interval = setInterval(() => {
-                setAmountSecondsElapsed(
-                    differenceInSeconds(new Date(), activeCycle.startDate),
-                )
-            }, 1000)
-
-            return () => {
-                clearInterval(interval)
-            }
-        }
-    },  [activeCycle])
 
     function handleCreateNewCycle(data: INewCycleFormData) {
         const id = uuidv4()
@@ -91,18 +49,18 @@ function Home() {
     }
 
     function handleInterruptCycle() {
-        setCycles(cycles.map(cycle => {
-            if (cycle.id === activeCycleId) {
-                return {...cycle, interruptDate: new Date()}
-            } else {
-                return cycle
+        setCycles(state =>
+            state.map(cycle => {
+                if (cycle.id === activeCycleId) {
+                    return {...cycle, interruptDate: new Date()}
+                } else {
+                  return cycle
             }
         }),
         )
         setActiveCycleId(null);
     }
 
-    const CyclesSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0;
     const currentSeconds = activeCycle ? CyclesSeconds - amountSecondsElapsed : 0;
 
     const minutesAmount = Math.floor(currentSeconds / 60);
@@ -120,47 +78,19 @@ function Home() {
     const task = watch('task');
     const isSubmitDisabled = !task;
 
+    /**
+     *  Props Drilling -> Quando se tem muitas propriedades apenas para comunicação entre componentes
+     *  Context API -> Permite compartilharmos informações entre Vários Componentes
+     */
+
+
     return (
         <HomeContainer>
             <form onSubmit={handleSubmit(handleCreateNewCycle)} action="">
-                <FormContainer>
-                    <label htmlFor="task">Vou trabalhar em</label>
-                    <TaskInput
-                        id="task"
-                        list="task-suggestion"
-                        placeholder="Dê um nome para seu projeto"
-                        disabled={!!activeCycle}
-                        {...register('task')}
-                    />
 
-                    <datalist id="task-suggestion">
-                        <option value="Estudar Inglês" />
-                        <option value="Estudar Espanhol" />
-                        <option value="Estudar React" />
-                    </datalist>
+                <NewCycleForm/>
 
-                    <label htmlFor="minutesAmount">durante</label>
-                    <MinutesAmountInput
-                        type="number"
-                        id="minutesAmount"
-                        placeholder="00"
-                        disabled={!!activeCycle}
-                        step={5}
-                        min={5}
-                        max={60}
-                        {...register('minutesAmount', {valueAsNumber: true})}
-                    />
-
-                    <span>minutos.</span>
-                </FormContainer>
-
-                <CountDownContainer>
-                    <span>{minutes[0]}</span>
-                    <span>{minutes[1]}</span>
-                    <Separator>:</Separator>
-                    <span>{seconds[0]}</span>
-                    <span>{seconds[1]}</span>
-                </CountDownContainer>
+                <Countdown />
 
                 {activeCycle ? (
                     <StopCountdownButton onClick={handleInterruptCycle} type="button">
