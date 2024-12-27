@@ -1,11 +1,16 @@
-import {createContext, useReducer, useState} from "react";
+import {createContext, useEffect, useReducer, useState} from "react";
 import {
-    ActionTypes,
     ICreateCycleData,
     ICyclesContext,
     ICyclesContextProvider,
 } from "../CreateUpdate/interface.ts";
-import cyclesReducer from "../reducers/cycles.ts";
+import cyclesReducer from "../reducers/cycles/reducer.ts";
+import {
+    addNewCycleAction,
+    interruptCurrentCycleAction,
+    markCurrentCycleAsAction
+} from "../reducers/cycles/actions.ts";
+import {differenceInSeconds} from "date-fns";
 
 export const CyclesContext = createContext({} as ICyclesContext)
 
@@ -17,12 +22,34 @@ export function CyclesContextProvider({
          cycles: [],
          activeCycleId: null,
         },
-    )
+        (initialState) => {
+        const storedStateAsJSON = localStorage.getItem(
+            '@ignite-timer:cycles-state-1.0.0'
+        )
 
-    const [amountSecondsElapsed, setAmountSecondsElapsed] = useState(0)
+        if (storedStateAsJSON) {
+            return JSON.parse(storedStateAsJSON);
+        }
+
+        return initialState
+    },
+)
 
     const { cycles, activeCycleId } = cyclesState
     const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
+
+    const [amountSecondsElapsed, setAmountSecondsElapsed] = useState(() => {
+        if (activeCycle) {
+            return differenceInSeconds(new Date(), new Date(activeCycle.startDate))
+        }
+
+        return 0
+    })
+
+    useEffect(() => {
+        const stateJSON = JSON.stringify(cyclesState)
+        localStorage.setItem('@ignite-timer:cycles-state-1.0.0', stateJSON)
+    },[cyclesState])
 
     function setSecondsElapsed(seconds: number) {
         setAmountSecondsElapsed(seconds)
@@ -30,12 +57,7 @@ export function CyclesContextProvider({
 
     function markCurrentCycleAsFinished() {
 
-        dispatch({
-            type: ActionTypes.MARK_CURRENT_CYCLE_AS_FINISHED,
-            payload: {
-                activeCycleId,
-            },
-        })
+        dispatch(markCurrentCycleAsAction())
     }
 
     function createNewCycle(data: ICreateCycleData) {
@@ -51,12 +73,7 @@ export function CyclesContextProvider({
             startDate: new Date(),
         }
 
-        dispatch({
-            type: ActionTypes.ADD_NEW_CYCLE,
-            payload: {
-                newCycle,
-            }
-        })
+        dispatch(addNewCycleAction(newCycle))
 
         setAmountSecondsElapsed(0)
 
@@ -64,12 +81,7 @@ export function CyclesContextProvider({
 
     function interruptCurrentCycle() {
 
-        dispatch({
-            type: ActionTypes.INTERRUPT_CURRENT_CYCLE,
-            payload: {
-                activeCycleId,
-            },
-        })
+        dispatch(interruptCurrentCycleAction())
     }
 
     return (
