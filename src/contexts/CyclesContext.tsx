@@ -13,11 +13,12 @@ export function CyclesContextProvider({
 }: ICyclesContextProvider) {
     const [cyclesState, dispatch] = useReducer(
         (state: ICycleState, action: any)=> {
+
         if (action.type === 'ADD_NEW_CYCLE') {
             return {
                 ...state,
                 cycles: [...state.cycles, action.payload.newCycle],
-                action: action.payload.newCycle.id,
+                activeCycleId: action.payload.newCycle.id,
             }
         }
 
@@ -27,6 +28,20 @@ export function CyclesContextProvider({
                 cycles: state.cycles.map(cycle => {
                     if (cycle.id === state.activeCycleId) {
                         return {...cycle, interruptDate: new Date()}
+                    } else {
+                        return cycle
+                    }
+                }),
+                activeCycleId: null,
+            }
+        }
+
+        if (action.type === 'MARK_CURRENT_CYCLE_AS_FINISHED') {
+            return {
+                ...state,
+                cycles: state.cycles.map(cycle => {
+                    if (cycle.id === state.activeCycleId) {
+                        return {...cycle, finishedDate: new Date()}
                     } else {
                         return cycle
                     }
@@ -58,15 +73,6 @@ export function CyclesContextProvider({
                 activeCycleId,
             },
         })
-        /*        setCycles(state =>
-            state.map(cycle => {
-                if (cycle.id === activeCycleId) {
-                    return {...cycle, finishedDate: new Date()}
-                } else {
-                    return cycle
-                }
-            }),
-        )*/
     }
 
     function createNewCycle(data: ICreateCycleData) {
@@ -89,7 +95,6 @@ export function CyclesContextProvider({
             }
         })
 
-        //setCycles((state) => [...state, newCycle])
         setAmountSecondsElapsed(0)
 
     }

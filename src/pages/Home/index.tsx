@@ -22,7 +22,7 @@ const newCycleFormValidationSchema = zod.object({
         .min(1, 'Informe a Tarefa'),
     minutesAmount: zod
         .number()
-        .min(5)
+        .min(1)
         .max(60),
 })
 
