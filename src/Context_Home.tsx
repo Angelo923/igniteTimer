@@ -1,3 +1,6 @@
+// ARQUIVO DE APRENDIZADO PARA UTILIZAÇÃO DO CONTEXT API
+
+
 import {createContext, useContext, useState} from "react";
 
 const CyclesContext = createContext({} as any)
@@ -24,7 +27,7 @@ function Countdown () {
     )
 }
 
-export function Home() {
+function Home() {
 const [activeCycle, setActiveCycle] = useState(0);
     return (
         <CyclesContext.Provider value={{ activeCycle, setActiveCycle }}>
@@ -35,3 +38,5 @@ const [activeCycle, setActiveCycle] = useState(0);
         </CyclesContext.Provider>
     )
 }
+
+export default Home;

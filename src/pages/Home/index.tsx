@@ -4,96 +4,63 @@ import {
     StartCountdownButton,
     StopCountdownButton,
 } from "./styles.ts";
-import {useEffect, useState} from "react";
-import {ICycle} from "../../CreateUpdate/interface.ts";
-import { v4 as uuidv4 } from 'uuid';
 import NewCycleForm from "./components/NewCycleForm";
 import Countdown from "./components/Countdown";
+import {FormProvider, useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import * as zod from "zod";
+import {useContext} from "react";
+import {CyclesContext} from "../../contexts/CyclesContext.tsx";
 
 // CONTROLLED = TEMPO REAL, useState()
 // UNCONTROLLED = usando javascript ou html, sem controle em tempo real do que é digitado
-/*
-*  function register(name: string) {
-*  return {
-*   onChange: () => void,
-*   onBlur: () => void,
-*   onFocus: () => void,
-*   }
-* }
-* */
+
+
+const newCycleFormValidationSchema = zod.object({
+    task: zod
+        .string()
+        .min(1, 'Informe a Tarefa'),
+    minutesAmount: zod
+        .number()
+        .min(5)
+        .max(60),
+})
+
+type INewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
 
 function Home() {
-    const [cycles, setCycles] = useState<ICycle[]>([])
-    const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
+    const { activeCycle, createNewCycle, interruptCurrentCycle } = useContext(CyclesContext)
 
-    const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
+    const newCycleForm = useForm<INewCycleFormData>({
+        resolver: zodResolver(newCycleFormValidationSchema),
+        defaultValues: {
+            task: '',
+            minutesAmount: 0,
+        }
+    })
+
+    const { handleSubmit, watch, reset } = newCycleForm;
 
     function handleCreateNewCycle(data: INewCycleFormData) {
-        const id = uuidv4()
-
-        const newCycle = {
-            //id: String(new Date().getTime()),
-            //id: String(idLib),
-            id,
-            task: data.task,
-            minutesAmount: data.minutesAmount,
-            startDate: new Date(),
-        }
-
-        setCycles((state) => [...state, newCycle])
-        setActiveCycleId(id)
-        setAmountSecondsElapsed(0)
-
-        reset();
-
+        createNewCycle(data)
+        reset()
     }
-
-    function handleInterruptCycle() {
-        setCycles(state =>
-            state.map(cycle => {
-                if (cycle.id === activeCycleId) {
-                    return {...cycle, interruptDate: new Date()}
-                } else {
-                  return cycle
-            }
-        }),
-        )
-        setActiveCycleId(null);
-    }
-
-    const currentSeconds = activeCycle ? CyclesSeconds - amountSecondsElapsed : 0;
-
-    const minutesAmount = Math.floor(currentSeconds / 60);
-    const secondsAmount = currentSeconds % 60;
-
-    const minutes = String(minutesAmount).padStart(2, '0');
-    const seconds = String(secondsAmount).padStart(2, '0');
-
-    useEffect(() => {
-        if (activeCycle) {
-            document.title = `Ignite Timer - ${minutes}:${seconds}`
-        }
-    }, [minutes, seconds, activeCycle]);
 
     const task = watch('task');
     const isSubmitDisabled = !task;
 
-    /**
-     *  Props Drilling -> Quando se tem muitas propriedades apenas para comunicação entre componentes
-     *  Context API -> Permite compartilharmos informações entre Vários Componentes
-     */
-
+     /*Props Drilling -> Quando se tem muitas propriedades apenas para comunicação entre componentes
+     Context API -> Permite compartilharmos informações entre Vários Componentes*/
 
     return (
         <HomeContainer>
             <form onSubmit={handleSubmit(handleCreateNewCycle)} action="">
-
-                <NewCycleForm/>
-
-                <Countdown />
-
+                    <FormProvider {...newCycleForm}>
+                        <NewCycleForm/>
+                    </FormProvider>
+                        <Countdown />
                 {activeCycle ? (
-                    <StopCountdownButton onClick={handleInterruptCycle} type="button">
+                    <StopCountdownButton onClick={interruptCurrentCycle} type="button">
                         <Stop size="24"/>
                         Parar
                     </StopCountdownButton>
